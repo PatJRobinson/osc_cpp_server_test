@@ -1,6 +1,20 @@
+import argparse
+import random
+import time
+from pythonosc import udp_client
+
 from tkinter import *
 from tkinter import ttk
 root = Tk()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--ip", default="168.192.7.2",
+                    help="The ip of the OSC server")
+parser.add_argument("--port", type=int, default=3226,
+                    help="The port the OSC server is listening on")
+args = parser.parse_args()
+
+client = udp_client.SimpleUDPClient(args.ip, args.port)
 
 # Initialize a database of oscillator waveshapes
 waveshapes = ('Sine', 'Square', 'Triangle', 'Saw', 'AllPartials')
@@ -19,6 +33,7 @@ def wshape_info(*args):
         idx = int(idxs[0])
         name = waveshapes[idx]
         statusmsg.set("You have selected the %s oscillator" % (name))
+        client.send_message("/filter", random.random())
 
 
 
@@ -49,9 +64,11 @@ manual2.grid(column=2, row=10, sticky='we')
 #
 def update_pitch(val):
     manual1['text'] = "Pitch: " + val
+    client.send_message("/filter", random.random())
 #
 def update_vol(val):
    manual2['text'] = "Volume: " + val
+   client.send_message("/multi", ["goo", 20])
 #
 
 pitch_slider = Scale(orient=VERTICAL, length=100, from_=100.0, to=1.0, command=update_pitch)
